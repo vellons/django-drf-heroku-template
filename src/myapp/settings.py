@@ -46,6 +46,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'django_filters',
     'drf_yasg',
+    'firebase_auth',
     'users',
 ]
 
@@ -129,6 +130,20 @@ STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 # https://docs.djangoproject.com/en/4.0/ref/settings/#default-auto-field
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
+# Firebase - SDK Firebase Admin (Service account)
+FIREBASE_CREDENTIAL = {
+    'type': 'service_account',
+    'project_id': os.environ.get('FIREBASE_PROJECT_ID'),
+    'private_key_id': os.environ.get('FIREBASE_PRIVATE_KEY_ID'),
+    'private_key': os.environ.get('FIREBASE_PRIVATE_KEY', '').replace('\\n', '\n'),
+    'client_email': os.environ.get('FIREBASE_CLIENT_EMAIL'),
+    'client_id': os.environ.get('FIREBASE_CLIENT_ID'),
+    'auth_uri': 'https://accounts.google.com/o/oauth2/auth',
+    'token_uri': 'https://accounts.google.com/o/oauth2/token',
+    'auth_provider_x509_cert_url': 'https://www.googleapis.com/oauth2/v1/certs',
+    'client_x509_cert_url': os.environ.get('FIREBASE_CLIENT_CERT_URL'),
+}
+
 # Rest framework - DRF
 REST_FRAMEWORK = {
     'DEFAULT_PAGINATION_CLASS': 'myapp.pagination.CustomPagination',
@@ -140,6 +155,13 @@ REST_FRAMEWORK = {
     ],
     'DEFAULT_FILTER_BACKENDS': (
         'django_filters.rest_framework.DjangoFilterBackend',
+    ),
+    'DEFAULT_PERMISSION_CLASSES': (
+        'rest_framework.permissions.AllowAny',
+    ),
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework.authentication.SessionAuthentication',
+        # 'firebase_auth.authentication.FirebaseAuthentication',
     ),
 }
 
@@ -158,5 +180,11 @@ if DEBUG:
 SWAGGER_ALLOWED = os.getenv('DJANGO_SWAGGER_ALLOWED', 'False') == 'True'
 SWAGGER_SETTINGS = {
     'USE_SESSION_AUTH': False,
-    'SECURITY_DEFINITIONS': None
+    'SECURITY_DEFINITIONS': {
+        'api_key': {
+            'type': 'apiKey',
+            'in': 'header',
+            'name': 'Authorization'
+        }
+    },
 }
