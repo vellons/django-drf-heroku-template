@@ -161,7 +161,7 @@ REST_FRAMEWORK = {
     ),
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework.authentication.SessionAuthentication',
-        # 'firebase_auth.authentication.FirebaseAuthentication',
+        'firebase_auth.authentication.FirebaseAuthentication',
     ),
 }
 
