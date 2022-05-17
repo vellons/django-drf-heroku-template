@@ -8,6 +8,7 @@ from rest_framework import authentication
 from myapp import settings
 from .exceptions import FirebaseError
 from .exceptions import InvalidAuthToken
+from .exceptions import ForbiddenUser
 from .exceptions import NoAuthToken
 
 credential = credentials.Certificate(settings.FIREBASE_CREDENTIAL)
@@ -39,11 +40,18 @@ class FirebaseAuthentication(authentication.BaseAuthentication):
             raise FirebaseError()
 
         user, created = User.objects.get_or_create(username=uid)
+        if not user.is_active:
+            raise ForbiddenUser()
+
         user.email = email
         user.last_login = timezone.localtime()
-        user.profile.sign_in_provider = sign_in_provider
         if created:
-            user.profile.username = uid
+            user.profile.sign_in_provider = sign_in_provider
+            user.profile.username = uid  # Only because username need to be unique
+            user.profile.save()
+        elif user.profile.sign_in_provider != sign_in_provider:  # Update sign_in_provider if changed
+            user.profile.sign_in_provider = sign_in_provider
+            user.profile.save()
         user.save()
 
         return user, created
