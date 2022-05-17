@@ -1,7 +1,10 @@
 from django.contrib.auth.models import User
+from django.core.validators import MinLengthValidator
 from django.db import models
 from django.db.models.signals import post_save
 from django.dispatch import receiver
+
+from users.validators import MyUsernameValidator
 
 PROFILE_TYPE_CHOICES = [
     ('STD', 'Standard'),
@@ -12,7 +15,17 @@ PROFILE_TYPE_CHOICES = [
 class Profile(models.Model):
     id = models.CharField(max_length=32, primary_key=True, unique=True)
     user = models.OneToOneField(User, on_delete=models.PROTECT)
-    username = models.CharField(max_length=64, unique=True)
+    username = models.CharField(
+        max_length=32,
+        unique=True,
+        help_text=(
+            'Required. 32 characters or fewer. Lowercase letters, digits _ only; must start with a letter.'
+        ),
+        validators=[MinLengthValidator(4), MyUsernameValidator()],
+        error_messages={
+            'unique': 'A user with that username already exists.',
+        },
+    )
     name = models.CharField(max_length=64, null=True)
     lastname = models.CharField(max_length=64, null=True)
     type = models.CharField(max_length=3, choices=PROFILE_TYPE_CHOICES, default='STD')
